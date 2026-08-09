@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live Screen</title>
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Pacifico&family=Press+Start+2P&family=Bangers&family=Audiowide&family=Monoton&family=Lobster&family=Righteous&family=VT323&family=Silkscreen&family=DotGothic16&display=swap" rel="stylesheet">
@@ -630,20 +631,22 @@ async function requestFolderPerm(){
   }
 }
 
-async function loadPlaylistFromHandle(){
-  if(!directoryHandle) return;
-  playlist = [];
+async function loadPlaylistFromHandle(dirHandle = directoryHandle){
+  if(!dirHandle) return;
+  if(dirHandle === directoryHandle) playlist = [];
   try {
-    for await (const entry of directoryHandle.values()){
+    for await (const entry of dirHandle.values()){
       if(entry.kind === 'file' && (entry.name.endsWith('.mp3') || entry.name.endsWith('.wav') || entry.name.endsWith('.ogg') || entry.name.endsWith('.m4a') || entry.name.endsWith('.flac'))) {
         playlist.push(entry);
+      } else if (entry.kind === 'directory') {
+        await loadPlaylistFromHandle(entry);
       }
     }
-    if(playlist.length > 0){
+    if(dirHandle === directoryHandle && playlist.length > 0){
       currentTrackIndex = 0;
       await playTrack(0, false);
     }
-  }catch(e){ hasFolderPerm = false; }
+  }catch(e){ if(dirHandle === directoryHandle) hasFolderPerm = false; }
 }
 
 async function playTrack(index, autoPlay=true){
@@ -873,6 +876,10 @@ document.addEventListener('keydown',e=>{
   await initMusicPlayer();
   updateAll();showMenu();
   setInterval(()=>updateAll(),200);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('Service Worker registration failed:', err));
+  }
 })();
 </script>
 </body>

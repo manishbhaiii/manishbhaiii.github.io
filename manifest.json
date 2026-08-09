@@ -1,0 +1,10 @@
+{
+  "name": "Live Screen",
+  "short_name": "Live Screen",
+  "description": "A dynamic AFK Live Screen with background, music, and time components.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": []
+}
